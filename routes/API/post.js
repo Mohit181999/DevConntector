@@ -1,4 +1,4 @@
-const express=require('express');
+ const express=require('express');
 const router=express.Router();
 const {check,validationResult}=require('express-validator');
 const auth=require('../../middleware/auth');
@@ -15,6 +15,7 @@ router.post('/',auth,[
         const user=await User.findById(req.user.id);
         const newPost=new Post({
             text: req.body.text,
+            showAction:req.body.showAction,
             name: user.name,
             avatar: user.avatar,
             user: req.user.id
@@ -109,27 +110,34 @@ router.post('/comment/:id',[auth,
     
 });
 
-router.delete('/comments/:id/:com_id',auth,async(req,res)=>{
-try{
-    const post = Post.findById(req.params.id);
+ router.delete('/comment/:id/:comment_id', auth, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
 
-    const comment=post.comments.find(com=>com.id===req.params.com_id);
-    if(!comment){
-        return res.status(400).json({msg:'no comment exits'});
+    // Pull out comment
+    const comment = post.comments.find(
+      (comment) => comment.id === req.params.comment_id
+    );
+    // Make sure comment exists
+    if (!comment) {
+      return res.status(404).json({ msg: 'Comment does not exist' });
     }
-    if(comment.user.toString()!==req.user.id){
-        return res.status(400).json({msg:'user not authorized'});
+    // Check user
+    if (comment.user.toString() !== req.user.id) {
+      return res.status(401).json({ msg: 'User not authorized' });
     }
-    const remcomment=post.comments.map(item=>item.id).indexOf(req.user.id);
-        post.comments.splice(remcomment,1);
-        await post.save();
-        res.json(post.comment);
-}
-catch(err){
-    console.log(err);
-    res.status(500).send('server err');
-}
+
+    post.comments = post.comments.filter(
+      ({ id }) => id !== req.params.comment_id
+    );
+
+    await post.save();
+
+    return res.json(post.comments);
+  } catch (err) {
+    console.error(err.message);
+    return res.status(500).send('Server Error');
+  }
 });
-
 
 module.exports=router;
