@@ -1,11 +1,11 @@
-import React from "react";
+ import React from "react";
 import PropsTypes from "prop-types";
 import {connect} from "react-redux";
 import {Link} from "react-router-dom";
 import Moment from "react-moment";
 import {addlikes,dellikes,delpost} from "../../action/post";
 
-const PostItem = ({addlikes,dellikes,delpost,showAction, auth,post:{_id,user,text,name,avatar,likes,comments,date}}) => {
+const PostItem = ({addlikes,dellikes,delpost,auth,post:{_id,user,text,name,avatar,likes,comments,date,showAction}}) => {
     return (
         <div>
            <div className="post bg-white p-1 my-1">
@@ -35,11 +35,17 @@ const PostItem = ({addlikes,dellikes,delpost,showAction, auth,post:{_id,user,tex
               <i className="fas fa-thumbs-down"></i>
             </button>
             <Link to={`/post/${_id}`} className="btn btn-primary">
-              Discussion{comments.length>0 && (<span className='comment-count'>{comments.length}</span>)} 
+              Discussion {comments.length>0 && (<span className='comment-count'>{comments.length}</span>)} 
             </Link>
-              {!auth.loading && user ===auth.user._id && <button type="button" onClick={()=>delpost(_id)} className="btn btn-danger"><i className="fas fa-times"></i>
-          </button>
-          }
+               
+                {!auth.loading && user ===auth.user._id &&
+                <button type="button" 
+                onClick={()=>delpost(_id)} 
+                className="btn btn-danger">
+                <i className="fas fa-times"></i>
+          </button>}
+          
+        
           </div>)}     
             
           </div>
@@ -47,9 +53,7 @@ const PostItem = ({addlikes,dellikes,delpost,showAction, auth,post:{_id,user,tex
         </div>
     )
 }
-PostItem.defaultProps = {
-  showAction:true
-}
+
 PostItem.propsTypes = {
     post:PropsTypes.object.isRequired,
     auth:PropsTypes.object.isRequired,
